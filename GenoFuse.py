@@ -478,7 +478,7 @@ class EnsembleModel(nn.Module):
         return ensemble_output
 
 
-data = pd.read_csv(r'testdate.csv', low_memory=False)
+data = pd.read_csv(r'testdata.csv', low_memory=False)
 input_data = data.iloc[:, 6:].values
 target_data = data.iloc[:, 5].values
 
@@ -486,7 +486,7 @@ scaler = StandardScaler()
 scaler.fit(input_data)
 
 chunk_size = 10
-dataset = ChunkedDataset(r'testdate.csv', chunk_size, scaler)
+dataset = ChunkedDataset(r'testdata.csv', chunk_size, scaler)
 
 print("Training RandomForestRegressor model...")
 rf_model = RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42)
