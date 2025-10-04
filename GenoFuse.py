@@ -34,8 +34,8 @@ from sklearn.model_selection import KFold
 
 # --- File and Path Configuration ---
 # Main training data paths
-GENO_DATA_PATH = r'/path/to/your/genotype.raw'  # [REQUIRED] Path to genotype file (.raw format, space-separated)
-PHENO_DATA_PATH = r'/path/to/your/phenotype.txt'  # [REQUIRED] Path to phenotype file (.txt format, tab-separated)
+GENO_DATA_PATH = r'/mnt/newdisk/WSL/GenoFuse/2509test/dk928/dk928.raw'  # [REQUIRED] Path to genotype file (.raw format, space-separated)
+PHENO_DATA_PATH = r'/mnt/newdisk/WSL/GenoFuse/2509test/dk928/adjusted_phenotypes.txt'  # [REQUIRED] Path to phenotype file (.txt format, tab-separated)
 
 # (Optional) Independent test set paths
 TEST_GENO_DATA_PATH = None     # [OPTIONAL] Path to independent test genotype file (.raw)
@@ -55,7 +55,7 @@ PHENO_TARGET_COL_IDX = 1      # Which column to use as training target in phenot
 
 # --- Training Parameters ---
 SEED = 123                    # Random seed for reproducibility
-BATCH_SIZE = 30               # Batch size for training (adjust based on GPU memory)
+BATCH_SIZE = 8               # Batch size for training (adjust based on GPU memory)
 NUM_EPOCHS = 120              # Number of training epochs
 GRADIENT_ACCUMULATION_STEPS = 6  # Gradient accumulation steps
 
@@ -83,7 +83,7 @@ EARLY_STOPPING_MIN_DELTA = 0.008  # Minimum change to qualify as improvement
 # ==============================================================================
 
 # --- Model Architecture Parameters ---
-PATCH_SIZE = 4                # Patch size for Conformer model
+PATCH_SIZE = 4                # Patch size for CNN-Transformer model
 BASE_CHANNEL = 16             # Base number of channels
 EMBED_DIM = 24                # Embedding dimension
 DEPTH = 3                     # Number of transformer layers
@@ -111,7 +111,7 @@ NUM_WORKERS = 0               # Number of data loader workers (0 for limited mem
 # --- Multi-GPU Configuration ---
 USE_MULTI_GPU = True          # Enable multi-GPU training
 MULTI_GPU_STRATEGY = "DataParallel"  # Multi-GPU strategy: "DataParallel" or "DistributedDataParallel"
-GPU_IDS = [0, 1, 2]           # GPU IDs to use for training
+GPU_IDS = [0, 1, 2, 3]           # GPU IDs to use for training
 
 # --- Data Processing ---
 OUTLIER_THRESHOLD = 3         # Threshold for outlier detection (standard deviations)
@@ -150,8 +150,8 @@ if not USE_MULTI_GPU:
     BATCH_SIZE = 4
     GRADIENT_ACCUMULATION_STEPS = 8
 
-# Conformer model parameters dictionary
-CONFORMER_PARAMS = {
+# CNN-Transformer model parameters dictionary
+CNN_TRANSFORMER_PARAMS = {
     'patch_size': PATCH_SIZE,
     'base_channel': BASE_CHANNEL,
     'embed_dim': EMBED_DIM,
@@ -240,7 +240,7 @@ def save_hyperparameters(output_dir, target_phenotype, timestamp):
             'save_per_fold_plots': SAVE_PER_FOLD_PLOTS
         },
         'model_params': {
-            'conformer': CONFORMER_PARAMS,
+            'cnn_transformer': CNN_TRANSFORMER_PARAMS,
             'random_forest': RF_PARAMS
         },
         'optimizer_params': OPTIMIZER_PARAMS,
@@ -515,7 +515,7 @@ class ConvTransBlock(nn.Module):
         x = self.fusion_block(x, x_t_r, return_x_2=False)
         return x, x_t
 
-class Conformer(nn.Module):
+class CNNTransformer(nn.Module):
     def __init__(self, patch_size=16, in_chans=1, num_classes=1, base_channel=64, channel_ratio=4, num_med_block=0,
              embed_dim=128, depth=6, num_heads=4, mlp_ratio=4., qkv_bias=False, qk_scale=None,
              drop_rate=0.5, attn_drop_rate=0.3, drop_path_rate=0.2):
@@ -947,7 +947,10 @@ if __name__ == "__main__":
     
     logging.info("========================= GenoFuse Model Training Started =========================")
     torch.manual_seed(SEED); np.random.seed(SEED)
-    logging.info(f"Using device: {DEVICE}")
+    if USE_MULTI_GPU and len(GPU_IDS) > 1:
+        logging.info(f"Using multi-GPU training: Primary device {DEVICE}, All GPUs: {GPU_IDS}")
+    else:
+        logging.info(f"Using single device: {DEVICE}")
     
     logging.info("Loading main dataset...")
     geno_df = pd.read_csv(GENO_DATA_PATH, sep=r'\s+', low_memory=True)
@@ -998,7 +1001,7 @@ if __name__ == "__main__":
             logging.info(f"[Fold {fold+1}] Training Random Forest...")
             rf_model = RandomForestRegressor(**RF_PARAMS).fit(scaled_main_input[train_ids], main_target[train_ids])
 
-            deep_model = Conformer(**CONFORMER_PARAMS).to(DEVICE)
+            deep_model = CNNTransformer(**CNN_TRANSFORMER_PARAMS).to(DEVICE)
             if USE_MULTI_GPU and len(GPU_IDS) > 1:
                 deep_model = nn.DataParallel(deep_model, device_ids=GPU_IDS)
             
@@ -1065,7 +1068,7 @@ if __name__ == "__main__":
         train_indices = train_dataset.indices if isinstance(train_dataset, Subset) else list(range(len(train_dataset)))
         rf_model = RandomForestRegressor(**RF_PARAMS).fit(scaled_main_input[train_indices], main_target[train_indices])
         
-        deep_model = Conformer(**CONFORMER_PARAMS).to(DEVICE)
+        deep_model = CNNTransformer(**CNN_TRANSFORMER_PARAMS).to(DEVICE)
         if USE_MULTI_GPU and len(GPU_IDS) > 1:
             deep_model = nn.DataParallel(deep_model, device_ids=GPU_IDS)
         

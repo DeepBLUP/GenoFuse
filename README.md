@@ -1,10 +1,10 @@
 # GenoFuse: Deep Learning Framework for Genomic Prediction
 
-GenoFuse is an advanced deep learning framework that combines Conformer neural networks with Random Forest ensemble methods for genomic prediction tasks. It's specifically designed for quantitative genetics research, particularly in livestock breeding programs.
+GenoFuse is an advanced deep learning framework that combines CNN-Transformer hybrid neural networks with Random Forest ensemble methods for genomic prediction tasks. It's specifically designed for quantitative genetics research, particularly in livestock breeding programs.
 
 ## 🚀 Features
 
-- **Hybrid Architecture**: Combines deep learning (Conformer) with traditional machine learning (Random Forest)
+- **Hybrid Architecture**: Combines deep learning (CNN-Transformer) with traditional machine learning (Random Forest)
 - **Cross-Validation Support**: Built-in k-fold cross-validation for robust model evaluation
 - **Multi-GPU Training**: Supports both DataParallel and DistributedDataParallel strategies
 - **Mixed Precision Training**: FP16 support for memory efficiency and faster training
@@ -105,7 +105,7 @@ OUTPUT_DIR = None                            # [OPTIONAL] Output directory
 ### 3. Advanced Parameter Tuning (Architecture & Technical)
 
 #### Model Architecture
-- `PATCH_SIZE = 4`: Input patch size for Conformer
+- `PATCH_SIZE = 4`: Input patch size for CNN-Transformer model
 - `BASE_CHANNEL = 16`: Base number of channels
 - `EMBED_DIM = 24`: Embedding dimension
 - `DEPTH = 3`: Number of transformer layers
@@ -223,7 +223,7 @@ NUM_WORKERS = 0
 
 GenoFuse employs a hybrid architecture:
 
-1. **Conformer Network**: Combines convolutional and transformer layers for genomic sequence modeling
+1. **CNN-Transformer Network**: Combines convolutional and transformer layers for genomic sequence modeling
 2. **Random Forest**: Captures non-linear interactions and provides ensemble diversity
 3. **Dynamic Weighting**: Adaptively combines predictions from both models
 
