@@ -34,8 +34,8 @@ from sklearn.model_selection import KFold
 
 # --- File and Path Configuration ---
 # Main training data paths
-GENO_DATA_PATH = r'/mnt/newdisk/WSL/GenoFuse/2509test/dk928/dk928.raw'  # [REQUIRED] Path to genotype file (.raw format, space-separated)
-PHENO_DATA_PATH = r'/mnt/newdisk/WSL/GenoFuse/2509test/dk928/adjusted_phenotypes.txt'  # [REQUIRED] Path to phenotype file (.txt format, tab-separated)
+GENO_DATA_PATH = r'/path/to/your/genotype.raw'  # [REQUIRED] Path to genotype file (.raw format, space-separated)
+PHENO_DATA_PATH = r'/path/to/your/phenotypes.txt'  # [REQUIRED] Path to phenotype file (.txt format, tab-separated)
 
 # (Optional) Independent test set paths
 TEST_GENO_DATA_PATH = None     # [OPTIONAL] Path to independent test genotype file (.raw)
